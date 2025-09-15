@@ -1,0 +1,22 @@
+[project]
+name = "busybuddy"
+version = "0.1.0"
+description = "An AI agent that turns 'busy work' into 'buddy work' by helping reduce the friction as you code"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "networkx>=3.5",
+  "numpy>=2.3.3",
+  "pybloom-live>=4.0.0",
+  "smolagents[openai,toolkit]>=1.21.3",
+  "torch>=2.8.0",
+  "transformers>=4.56.1",
+  "tree-sitter>=0.25.1",
+  "tree-sitter-languages>=1.10.2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-mock>=3.14",
+]
