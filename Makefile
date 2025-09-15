@@ -33,7 +33,7 @@ run:
 	@if [ ! -f .env ] && [ -z "$$GEMINI_API_KEY" ]; then \
 		echo "Note: GEMINI_API_KEY not set and no .env found; the agent may fail to authenticate."; \
 	fi
-	uv run python -m src.busy_buddy.main
+	uv run python -m src.code_explorer.main
 
 test:
 	uv run pytest -q

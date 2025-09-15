@@ -1,12 +1,11 @@
-"""
-Codebase Explorer - AI-powered code analysis and exploration tools
-"""
+#!/usr/bin/env python3
+__version__ = "0.0.1"
 
 from .agent import CodebaseExplorerAgent
 from .tools import (
   SemanticSearchTool,
   DependencyAnalysisTool,
-  SmartCodeReaderTool,
+  ReadCodeTool,
   ArchitectureMapperTool
 )
 from .index import CodebaseIndex
@@ -16,8 +15,9 @@ __all__ = [
   'CodebaseExplorerAgent',
   'SemanticSearchTool',
   'DependencyAnalysisTool',
-  'SmartCodeReaderTool',
+  'ReadCodeTool',
   'ArchitectureMapperTool',
   'CodebaseIndex',
-  'CodeEntity'
+  'CodeEntity',
+  "__version__"
 ]

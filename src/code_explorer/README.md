@@ -24,7 +24,7 @@ pip install tree-sitter tree-sitter-languages networkx pybloom-live torch transf
 ### As a Standalone Module
 
 ```python
-from busy_buddy.codebase_explorer import CodebaseExplorerAgent
+from code_explorer import CodebaseExplorerAgent
 
 # Initialize the explorer
 explorer = CodebaseExplorerAgent("/path/to/codebase")
@@ -41,7 +41,7 @@ print(result)
 ### Using Individual Tools
 
 ```python
-from busy_buddy.codebase_explorer import CodebaseIndex, SemanticSearchTool
+from code_explorer import CodebaseIndex, SemanticSearchTool
 
 # Build index
 index = CodebaseIndex("/path/to/codebase")
@@ -63,7 +63,7 @@ python -m busy_buddy --explore
 python -m busy_buddy --explore /path/to/codebase
 
 # Run the demo
-python src/busy_buddy/codebase_explorer_demo.py
+make run
 ```
 
 ## Architecture

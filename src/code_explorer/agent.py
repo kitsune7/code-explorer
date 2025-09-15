@@ -5,20 +5,23 @@ Main agent for codebase exploration
 from collections import deque
 from typing import Optional, List
 
-from smolagents import CodeAgent, ToolCallingAgent, Tool
+from smolagents import CodeAgent, ToolCallingAgent, Tool, Model, InferenceClientModel
 
 from .index import CodebaseIndex
 from .tools import (
   SemanticSearchTool,
   DependencyAnalysisTool,
-  SmartCodeReaderTool,
+  ReadCodeTool,
   ArchitectureMapperTool
 )
 
 class CodebaseExplorerAgent:
   """Main agent for codebase exploration with subagent support"""
 
-  def __init__(self, codebase_path: str, model_name: str = "HuggingFaceH4/starchat2-15b-v0.1"):
+  def __init__(self, codebase_path: str, model: Optional[Model] = None):
+    if model is None:
+      model = InferenceClientModel(model_id="openbmb/MiniCPM4.1-8B")
+
     self.codebase_path = codebase_path
     self.index = CodebaseIndex(codebase_path)
 
@@ -30,14 +33,14 @@ class CodebaseExplorerAgent:
     self.tools = [
       SemanticSearchTool(self.index),
       DependencyAnalysisTool(self.index),
-      SmartCodeReaderTool(self.index, codebase_path),
+      ReadCodeTool(self.index, codebase_path),
       ArchitectureMapperTool(self.index, codebase_path)
     ]
 
     # Initialize main agent
     self.agent = ToolCallingAgent(
       tools=self.tools,
-      model=model_name,
+      model=model,
       max_steps=10
     )
 
@@ -45,7 +48,7 @@ class CodebaseExplorerAgent:
     self.context_window = deque(maxlen=5)
     self.focus_stack = []
 
-  def explore(self, query: str, use_subagent: bool = False) -> str:
+  def explore(self, query: str, use_subagent: bool = False):
     """Main exploration method with optional subagent delegation"""
 
     # Add query to context
@@ -74,7 +77,7 @@ class CodebaseExplorerAgent:
     detailed_keywords = ['deep dive', 'detailed', 'comprehensive', 'all', 'every', 'complete']
     return any(keyword in query.lower() for keyword in detailed_keywords)
 
-  def _delegate_to_subagent(self, query: str) -> str:
+  def _delegate_to_subagent(self, query: str):
     """Create specialized subagent for detailed analysis"""
     subagent = CodeAgent(
       tools=[self.tools[1], self.tools[2]],  # Dependency and reader tools

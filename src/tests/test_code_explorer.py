@@ -6,16 +6,16 @@ from pathlib import Path
 import pytest
 from unittest.mock import Mock, patch
 
-from busy_buddy.codebase_explorer import (
+from code_explorer import (
   CodebaseExplorerAgent,
   CodebaseIndex,
   CodeEntity,
   SemanticSearchTool,
   DependencyAnalysisTool,
-  SmartCodeReaderTool,
+  ReadCodeTool,
   ArchitectureMapperTool
 )
-from busy_buddy.codebase_explorer.utils import (
+from code_explorer.utils import (
   should_skip_path,
   get_project_type,
   estimate_memory_usage,
@@ -218,21 +218,17 @@ class TestTools:
     assert "Dependencies for file1.py" in result
     assert "file2.py" in result
 
-  def test_smart_code_reader_tool(self, tmp_path, mock_index):
+  def test_read_code_tool(self, tmp_path, mock_index):
     """Test code reading functionality"""
     # Create a test file
     test_file = tmp_path / "test.py"
     test_file.write_text("def test():\n    return 42")
 
-    tool = SmartCodeReaderTool(mock_index, str(tmp_path))
+    tool = ReadCodeTool(mock_index, str(tmp_path))
 
     # Test full mode
     result = tool.forward("test.py", mode="full")
     assert "def test()" in result
-
-    # Test chunk mode
-    result = tool.forward("test.py", mode="chunk", chunk_size=1)
-    assert "Lines 1-1" in result
 
   def test_architecture_mapper_tool(self, mock_index, tmp_path):
     """Test architecture mapping"""
@@ -252,7 +248,7 @@ class TestCodebaseExplorerAgent:
     # Create a minimal codebase
     (tmp_path / "test.py").write_text("print('hello')")
 
-    with patch('busy_buddy.codebase_explorer.agent.ToolCallingAgent'):
+    with patch('code_explorer.agent.ToolCallingAgent'):
       agent = CodebaseExplorerAgent(str(tmp_path))
 
       assert agent.codebase_path == str(tmp_path)
@@ -263,7 +259,7 @@ class TestCodebaseExplorerAgent:
     """Test context window and focus stack"""
     (tmp_path / "test.py").write_text("print('hello')")
 
-    with patch('busy_buddy.codebase_explorer.agent.ToolCallingAgent'):
+    with patch('code_explorer.agent.ToolCallingAgent'):
       agent = CodebaseExplorerAgent(str(tmp_path))
 
       # Add queries to context
@@ -281,7 +277,7 @@ class TestCodebaseExplorerAgent:
     """Test detection of queries needing detailed analysis"""
     (tmp_path / "test.py").write_text("print('hello')")
 
-    with patch('busy_buddy.codebase_explorer.agent.ToolCallingAgent'):
+    with patch('code_explorer.agent.ToolCallingAgent'):
       agent = CodebaseExplorerAgent(str(tmp_path))
 
       assert agent._needs_detailed_analysis("deep dive into the code")

@@ -1,11 +1,11 @@
 import os
-from .codebase_explorer import CodebaseExplorerAgent
+from .agent import CodebaseExplorerAgent
 from smolagents import OpenAIServerModel
 import dotenv
 
 def main():
   """
-  Example usage of the Codebase Explorer Agent with the busybuddy project
+  Runs the Codebase Explorer agent
   """
   dotenv.load_dotenv()
 
@@ -17,12 +17,9 @@ def main():
     api_key=os.getenv("GEMINI_API_KEY"),
   )
 
-  # Initialize the agent
   print(f"Initializing Codebase Explorer for: {codebase_path}")
-  explorer = CodebaseExplorerAgent(codebase_path)
-  explorer.set_model(model)
+  explorer = CodebaseExplorerAgent(codebase_path, model)
 
-  # Interactive mode
   print("\n" + "="*50)
   print("Codebase Explorer is ready!")
   print(f"Exploring codebase at: {codebase_path}")
@@ -48,14 +45,13 @@ def main():
     elif not query.strip():
       continue
 
-    # Check if user wants detailed analysis
     use_subagent = "deep dive" in query.lower() or "detailed" in query.lower()
 
     try:
       result = explorer.explore(query, use_subagent=use_subagent)
-      print("\n" + result + "\n")
+      print(f"\n{result}\n")
     except Exception as e:
       print(f"Error: {e}\n")
 
 if __name__ == "__main__":
-    main()
+  main()

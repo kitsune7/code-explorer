@@ -171,7 +171,7 @@ class CodebaseIndex:
     results = []
     query_lower = query.lower()
 
-    for entity_id, entity in self.entities.items():
+    for _, entity in self.entities.items():
       if entity_type and entity.type != entity_type:
         continue
       if query_lower in entity.name.lower() or query_lower in entity.path.lower():

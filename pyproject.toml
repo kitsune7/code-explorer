@@ -1,7 +1,7 @@
 [project]
-name = "busybuddy"
+name = "code_explorer"
 version = "0.1.0"
-description = "An AI agent that turns 'busy work' into 'buddy work' by helping reduce the friction as you code"
+description = "Code Explorer is an AI agent that can answer questions about codebases. It can be used to explore unfamiliar code, understand complex logic, and find specific implementations or patterns."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -11,7 +11,7 @@ dependencies = [
   "smolagents[openai,toolkit]>=1.21.3",
   "torch>=2.8.0",
   "transformers>=4.56.1",
-  "tree-sitter>=0.25.1",
+  "tree-sitter==0.21.3", # Note: tree-sitter-languages requires tree-sitter==0.21.3
   "tree-sitter-languages>=1.10.2",
 ]
 
@@ -20,3 +20,6 @@ dev = [
   "pytest>=8.3",
   "pytest-mock>=3.14",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

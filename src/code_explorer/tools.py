@@ -83,12 +83,13 @@ class DependencyAnalysisTool(Tool):
     super().__init__()
     self.index = index
 
-  def forward(self, entity_path: str, direction: Optional[str] = "imports", depth: Optional[int] = 2) -> str:
+  def forward(self, entity_path: str, direction: Optional[str] = "imports", depth: Optional[int] = 3) -> str:
     """Analyze dependencies with configurable depth"""
+
     if direction is None:
       direction = "imports"
     if depth is None:
-      depth = 2
+      depth = 3
     if entity_path not in self.index.dependency_graph:
       return f"Entity {entity_path} not found in dependency graph"
 
@@ -115,15 +116,15 @@ class DependencyAnalysisTool(Tool):
     return "\n".join(results) if results else f"No dependencies found for {entity_path}"
 
 
-class SmartCodeReaderTool(Tool):
+class ReadCodeTool(Tool):
   """Read code with intelligent chunking and summarization"""
 
   name = "read_code"
-  description = "Read code files or entities with smart chunking and summarization"
+  description = "Read code files or entities with smart summarization"
   inputs = {
-    "path": {"type": "string", "description": "File path or entity identifier"},
+    "path": {"type": "string", "description": "File path"},
     "mode": {"type": "string", "description": "Mode: 'full', 'summary', 'structure', 'chunk'", "default": "summary", "nullable": True},
-    "chunk_size": {"type": "integer", "description": "Size of chunks if mode is 'chunk'", "nullable": True}
+    "max_entities": {"type": "integer", "description": "Max entities to summarize if mode is 'summary'", "nullable": True}
   }
   output_type = "string"
 
@@ -132,12 +133,13 @@ class SmartCodeReaderTool(Tool):
     self.index = index
     self.root_path = Path(root_path)
 
-  def forward(self, path: str, mode: Optional[str] = "summary", chunk_size: Optional[int] = 50) -> str:
+  def forward(self, path: str, mode: Optional[str] = "summary", max_entities: Optional[int] = 5) -> str:
     """Read code with different strategies"""
+
     if mode is None:
       mode = "summary"
-    if chunk_size is None:
-      chunk_size = 50
+    if max_entities is None:
+      max_entities = 5
     file_path = self.root_path / path
 
     if not file_path.exists():
@@ -146,25 +148,15 @@ class SmartCodeReaderTool(Tool):
     content = file_path.read_text(encoding='utf-8')
 
     if mode == "full":
-      return content[:2000] + ("..." if len(content) > 2000 else "")
+      return content
 
     elif mode == "summary":
-      return self._generate_summary(content, path)
+      return self._generate_summary(content, path, max_entities)
 
     elif mode == "structure":
       return self._extract_structure(content, path)
 
-    elif mode == "chunk":
-      lines = content.split('\n')
-      chunks = []
-      for i in range(0, len(lines), chunk_size):
-        chunk = '\n'.join(lines[i:i+chunk_size])
-        chunks.append(f"[Lines {i+1}-{min(i+chunk_size, len(lines))}]:\n{chunk}")
-      return f"File chunked into {len(chunks)} parts. First chunk:\n{chunks[0]}"
-
-    return "Invalid mode specified"
-
-  def _generate_summary(self, content: str, path: str) -> str:
+  def _generate_summary(self, content: str, path: str, max_entities: int) -> str:
     """Generate intelligent summary using tree-sitter parsing"""
     if path in self.index.summary_cache:
       return self.index.summary_cache[path]
@@ -181,9 +173,9 @@ class SmartCodeReaderTool(Tool):
 
     # Add entity counts
     for entity_type, names in by_type.items():
-      summary_parts.append(f"{entity_type.capitalize()}s: {', '.join(names[:5])}")
-      if len(names) > 5:
-        summary_parts.append(f"  ... and {len(names) - 5} more")
+      summary_parts.append(f"{entity_type.capitalize()}s: {', '.join(names[:max_entities])}")
+      if len(names) > max_entities:
+        summary_parts.append(f"  ... and {len(names) - max_entities} more")
 
     # Extract imports
     imports = self.index.parser.extract_imports(content, path)
@@ -237,8 +229,10 @@ class ArchitectureMapperTool(Tool):
 
   def forward(self, focus_area: Optional[str] = "") -> str:
     """Generate architecture overview"""
+
     if focus_area is None:
       focus_area = ""
+
     # Identify key directories
     dirs = defaultdict(list)
     for entity_path in self.index.entities:
