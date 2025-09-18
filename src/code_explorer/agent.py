@@ -5,7 +5,8 @@ Main agent for codebase exploration
 from collections import deque
 from typing import Optional, List
 
-from smolagents import CodeAgent, ToolCallingAgent, Tool, Model, InferenceClientModel
+from smolagents import CodeAgent, ToolCallingAgent, Tool, Model
+from .custom_model import QwenInferenceClientModel
 
 from .index import CodebaseIndex
 from .tools import (
@@ -20,7 +21,7 @@ class CodebaseExplorerAgent:
 
   def __init__(self, codebase_path: str, model: Optional[Model] = None):
     if model is None:
-      model = InferenceClientModel(model_id="openbmb/MiniCPM4.1-8B")
+      model = QwenInferenceClientModel(model_id="Qwen/Qwen3-4B-Instruct-2507")
 
     self.codebase_path = codebase_path
     self.index = CodebaseIndex(codebase_path)
@@ -41,7 +42,7 @@ class CodebaseExplorerAgent:
     self.agent = ToolCallingAgent(
       tools=self.tools,
       model=model,
-      max_steps=10
+      max_steps=20
     )
 
     # Context management
@@ -90,7 +91,8 @@ class CodebaseExplorerAgent:
 
   def _build_context_aware_prompt(self, query: str) -> str:
     """Build prompt with context awareness"""
-    prompt_parts = []
+    prompt_parts = ["You are a code exploration assistant analyzing a codebase. Your goal is to help developers understand code structure, functionality, and implementation details.",
+                    "Consider how the codebase as a whole is organized and how different components interact. Look at files that are commonly used in projects of this type (i.e. package.json in Node.js projects)."]
 
     if self.focus_stack:
       prompt_parts.append(f"Current focus: {self.focus_stack[-1]}")
@@ -99,7 +101,15 @@ class CodebaseExplorerAgent:
       recent = list(self.context_window)[-2:]
       prompt_parts.append(f"Recent queries: {', '.join(recent)}")
 
-    prompt_parts.append(f"Query: {query}")
+    prompt_parts.append(f"User Question: {query}\n")
+
+    prompt_parts.append("Provide a clear, accurate explanation that:")
+    prompt_parts.append("1. Directly answers the user's question")
+    prompt_parts.append("2. References specific files and line numbers when relevant")
+    prompt_parts.append("3. Explains any complex logic or patterns")
+    prompt_parts.append("4. Highlights important relationships between components")
+    prompt_parts.append("5. Uses appropriate technical terminology")
+
     prompt_parts.append("Note: Use tools efficiently, start with high-level overview if needed.")
 
     return "\n".join(prompt_parts)

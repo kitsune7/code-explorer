@@ -9,16 +9,18 @@ def main():
   """
   dotenv.load_dotenv()
 
-  codebase_path = os.getenv("CODEBASE_PATH", "/Users/chris.bradshaw/Git/vac")
+  codebase_path = os.getenv("CODEBASE_PATH", "./")
+  use_small_model = os.getenv("USE_SMALL_MODEL", "false").lower() == "true"
 
   model = OpenAIServerModel(
     model_id="gemini-2.0-flash-exp",
     api_base="https://generativelanguage.googleapis.com/v1beta/openai/",
     api_key=os.getenv("GEMINI_API_KEY"),
-  )
+  ) if not use_small_model else None
+  print(f"Using {'small local model' if use_small_model else 'Gemini 2.0'}")
 
   print(f"Initializing Codebase Explorer for: {codebase_path}")
-  explorer = CodebaseExplorerAgent(codebase_path, model)
+  explorer = CodebaseExplorerAgent(codebase_path, model=model)
 
   print("\n" + "="*50)
   print("Codebase Explorer is ready!")

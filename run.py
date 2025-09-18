@@ -1,4 +1,4 @@
 #!/usr/bin/env python3
-from src.busy_buddy.main import main
+from src.code_explorer.main import main
 
 main()

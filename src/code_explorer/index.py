@@ -28,12 +28,18 @@ class CodebaseIndex:
     self.embeddings_cache: Dict[str, np.ndarray] = {}
     self.summary_cache: Dict[str, str] = {}
 
-    # Initialize parser
-    if TREE_SITTER_AVAILABLE or TREE_SITTER_BASIC:
-      self.parser = TreeSitterParser()
-    else:
-      self.parser = RegexFallbackParser()
-      print("Using regex fallback parser. For better accuracy, install tree-sitter-languages")
+    # Ignore warnings during index build
+    # I know I'm using an older version, but the new one breaks everything
+    import warnings
+    with warnings.catch_warnings():
+      warnings.filterwarnings("ignore", category=FutureWarning, message="..." )
+
+      # Initialize parser
+      if TREE_SITTER_AVAILABLE or TREE_SITTER_BASIC:
+        self.parser = TreeSitterParser()
+      else:
+        self.parser = RegexFallbackParser()
+        print("Using regex fallback parser. For better accuracy, install tree-sitter-languages")
 
     # Initialize embedding model for semantic search
     self.tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')

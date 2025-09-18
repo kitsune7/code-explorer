@@ -62,7 +62,7 @@ class SemanticSearchTool(Tool):
       results.append(f"[Score: {score:.2f}] {entity.type} {entity.name} in {entity.path}")
       if 'start_line' in entity.metadata:
         results.append(f"  Location: Line {entity.metadata['start_line']}")
-      results.append(f"  Preview: {entity.content[:100]}...")
+      results.append(f"  Preview: {entity.content[:200]}...")
 
     return "\n".join(results) if results else "No relevant results found"
 
@@ -243,14 +243,14 @@ class ArchitectureMapperTool(Tool):
     # Find entry points
     entry_points = []
     for path in self.index.entities:
-      if any(pattern in path.lower() for pattern in ['main.', '__main__', 'app.', 'index.', 'server.', 'cli.']):
+      if '::' not in path and (any(path.lower().startswith(pattern) for pattern in ['main.', '__main__', 'app.', 'index.', 'server.', 'cli.']) or any(pattern in path.lower() for pattern in ['src/main.', 'src/__main__', 'src/app.', 'src/index.', 'src/server.', 'src/cli.'])):
         entry_points.append(path)
 
     # Build summary
     summary = ["=== Codebase Architecture ===\n"]
 
     summary.append("Top-level directories:")
-    for dir_name, files in sorted(dirs.items())[:10]:
+    for dir_name, files in sorted(dirs.items()):
       # Count entity types in directory
       types_count = defaultdict(int)
       for file in files:
@@ -260,7 +260,7 @@ class ArchitectureMapperTool(Tool):
       type_summary = ", ".join([f"{count} {t}s" for t, count in types_count.items()])
       summary.append(f"  {dir_name}/ ({len(files)} files, {type_summary})")
 
-    summary.append(f"\nEntry points: {', '.join(entry_points[:5])}")
+    summary.append(f"\nEntry points:\n{'\n  '.join(entry_points)}")
 
     # Analyze connectivity
     if self.index.dependency_graph.number_of_nodes() > 0:
@@ -277,7 +277,7 @@ class ArchitectureMapperTool(Tool):
         summary.append("\nCodebase is fully connected")
       else:
         components = list(nx.weakly_connected_components(self.index.dependency_graph))
-        summary.append(f"\nCodebase has {len(components)} separate components")
+        summary.append(f"\nCodebase has {len(components)} separate or weakly connected components (e.g. files or functions/data structures)")
 
     # Language distribution
     lang_count = defaultdict(int)
